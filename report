@@ -1,0 +1,15 @@
+
+public class report {
+	public String doctor_id ; 
+	public String doctor_name ; 
+	public String patient ; 
+	public String dateOfAdmisson ; 
+	public String age ; 
+	public String Status ; 
+	public String description ;
+	public String path ; 
+	
+	
+
+	
+}
