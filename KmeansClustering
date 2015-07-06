@@ -1,0 +1,193 @@
+
+import java.util.Arrays;
+import java.util.Random;
+
+public class KmeansClustering {
+	
+	double inPoints[][];       //trained data and their features
+	double centers[][];        //centers
+	int clusterCardinality[];  //number of point on each cluster
+	int pointsClusters[];      //point in clusters
+	double nearestToCenter[];
+	int nearestPointToCenter[];
+	int numClusters;
+	boolean hasEmptyClusters; 
+	Random rand = new Random();
+	double rangeStart = -1; //min of fired neurons
+	double rangeEnd = 1;   //max of fired neurons
+	int dim = 2;
+	
+	
+	public KmeansClustering(double x[][], int n, double st, double end){
+		numClusters = n;
+		centers = new double[n][];
+		clusterCardinality = new int[n];
+		nearestPointToCenter = new int[n];
+		nearestToCenter = new double[n];
+		inPoints = x;
+		pointsClusters = new int[x.length];
+		rangeStart = st;
+		rangeEnd = end;
+		dim = x[0].length;
+	}
+
+	public KmeansClustering(double x[][], int n){
+		numClusters = n;
+		centers = new double[n][];
+		clusterCardinality = new int[n];
+		nearestPointToCenter = new int[n];
+		nearestToCenter = new double[n];
+		inPoints = x;
+		pointsClusters = new int[x.length];
+		dim = x[0].length;
+	}
+	
+	public KmeansClustering(double x[][]){
+		inPoints = x;
+		pointsClusters = new int[x.length];
+		numClusters = Math.max(x.length/10,2);
+		centers = new double[numClusters][];
+		clusterCardinality = new int[numClusters];
+		nearestPointToCenter = new int[numClusters];
+		nearestToCenter = new double[numClusters];
+		dim = x[0].length;
+	}
+
+   /** 
+    * returns the centers
+    * move centers until no change
+    * @return centers of the input data
+	*/
+	public double[][] cluster(){
+		int pointsToChange = inPoints.length;
+		initializeCenters();
+		boolean noEmptyClusters = true;
+		
+		while(noEmptyClusters && pointsToChange > 0){
+			pointsToChange = assignClusterPoints();
+			if(pointsToChange>0) noEmptyClusters = movecenters();
+		}
+		hasEmptyClusters = !noEmptyClusters;
+		System.gc();
+		return centers;
+	}
+	
+   /**
+    * initialize the centers
+	*/
+	private void initializeCenters() {
+		double range = rangeEnd - rangeStart;
+		centers = new double[numClusters][dim];
+		for(int j=0; j<dim; j++)
+			for(int i=0; i< numClusters; i++){
+				centers[i][j] = rand.nextDouble()*range + rangeStart;
+		}
+		
+	}
+   /**
+    * move centers while there 's a change
+    * @return true if there 's a change on the old centers
+	*/
+	private boolean movecenters() {
+		centers = new double[numClusters][dim];
+		Arrays.fill(clusterCardinality,0);
+		int c;
+		
+		for(int i=0; i<inPoints.length; i++){
+			c = pointsClusters[i];
+			++clusterCardinality[c];
+			for(int j=0; j<dim; j++)
+				centers[c][j] += inPoints[i][j];
+		}
+		
+		for(int i=0; i< numClusters; i++){
+			if(clusterCardinality[i]==0)
+				return false;
+			for(int j=0; j<dim; j++)
+				centers[i][j] /= clusterCardinality[i];
+		}
+		return true;
+	}
+	
+   /** 
+    * assign clusters and change on the old clusters
+    * @return number of changes on the old centers
+	*/
+	private int assignClusterPoints() {
+		double minDist = Double.MAX_VALUE;
+		double dist = 0;
+		int oldCluster = 0;
+		int numChanges = 0;
+		for(int i=0; i<inPoints.length; i++){
+			minDist = Double.MAX_VALUE;
+			oldCluster = pointsClusters[i];
+			for(int j=0; j<numClusters; j++){
+				dist = sqrDist(inPoints[i],centers[j]);
+				if(dist<minDist){
+					minDist = dist;
+					pointsClusters[i] = j;
+				}
+			}
+			if(pointsClusters[i]!=oldCluster)
+				numChanges++;
+			if(minDist<nearestToCenter[pointsClusters[i]]){
+				nearestToCenter[pointsClusters[i]] = minDist;
+				nearestPointToCenter[pointsClusters[i]] = i;
+			}
+		}
+		return numChanges;
+	}
+	
+   /**
+    * calculate the distance between points and centers
+    * @param ds the points
+    * @param ds2 the centers
+    * @return distance between points and centers
+	*/
+	private double sqrDist(double[] ds, double[] ds2) {
+		double sqd = 0;
+		if(ds.length != ds2.length)
+			return -1;
+		for(int i=0 ; i< ds.length; i++)
+			sqd += Math.pow(ds[i] - ds2[i],2);
+		return sqd;
+	}
+	
+   /**
+    * returns points of clusters
+    * @return points of clusters
+	*/
+	public int[] getPointsClusters() {
+		return pointsClusters;
+	}
+	
+   /**
+    * returns the number of empty clusters
+    * @return the number of empty clusters
+	*/
+	public int numEmptyClusters(){
+		int emptyClusters = 0;
+		for(int i=0; i<numClusters; i++)
+			if(clusterCardinality[i]==0)
+				emptyClusters++;
+		return emptyClusters;
+	}
+	
+   /**
+    * returns Nearest Point To specific Center i
+    * @param number of the center
+    * @return Nearest Point To specific Center i
+	*/
+	public int getNearestPointToCenter(int i) {
+		return nearestPointToCenter[i];
+	}
+	
+   /**
+    * return a boolean , true if has empty cluster
+    * @return true if has empty cluster or false if hasn't empty cluster
+	*/
+	public boolean hasEmptyClusters() {
+		return hasEmptyClusters;
+	}
+	
+}
