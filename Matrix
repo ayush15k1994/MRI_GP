@@ -1,0 +1,239 @@
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.WritableRaster;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Vector;
+
+import javax.imageio.ImageIO;
+
+public class Matrix {
+	int vert, horz;
+	Vector<Double> data;
+
+	public Matrix(int vert, int horz) {
+		super();
+		this.vert = vert;
+		this.horz = horz;
+		this.data = new Vector<Double>(vert * horz);
+		data.setSize(vert * horz);
+		Collections.fill(data, 0.0);
+
+	}
+
+	public Matrix(){
+	
+	}
+	
+	public Matrix(Matrix A) {
+		this.data = (Vector<Double>) A.data.clone();
+		this.horz = A.horz;
+		this.vert = A.vert;
+	}
+
+   /**
+    * returns the max pixel on the image	
+    * @return the max pixel on the image
+	*/
+	public double Max() {
+		return Collections.max(data);
+	}
+
+   /**
+	* returns the min pixel on the image	
+	* @return the min pixel on the image
+	*/
+	public double Min() {
+		return Collections.min(data);
+	}
+
+   /**
+    * fill the matrix with A value
+	*/
+	public void Clear(double A) {
+		Collections.fill(data, A);
+	}
+	
+   /**
+    * equal the passed matrix to the this matrix
+    * @param m , passed matrix
+    * @return this matrix	
+	*/
+	public Matrix equalMatrix(Matrix m) {
+		this.data = (Vector<Double>) m.data.clone();
+		this.horz = m.horz;
+		this.vert = m.vert;
+		return this;
+	}
+
+   /**
+    * add double value to matrix
+    * @param f , the value to be added
+    * @return the result matrix
+	*/
+	public Matrix addDouble(double f) {
+		Matrix ans = new Matrix(vert , horz);
+		for(int i = 0; i < data.size(); i++)
+			ans.data.set(i, data.get(i)+f);
+		return ans;
+	}
+	
+   /**
+    * add double value to this matrix
+    * @param f , the value to be added
+    * @return the result matrix
+	*/
+	public Matrix addDoubleEqual(double f) {
+		for(int i = 0; i < data.size(); i++)
+			data.set(i, data.get(i)+f);
+		return this;
+	} 
+	
+   /**
+    * add matrix value to another matrix
+    * @param m , the passed matrix
+    * @return the result matrix
+	*/
+	public Matrix addMatrix(Matrix m) {
+		Matrix ans = new Matrix(vert , horz);
+		for (int i = 0; i < data.size(); i++)
+			ans.data.set(i, data.elementAt(i) + m.data.elementAt(i));
+		return ans;
+	}
+	
+   /**
+    * add matrix value to this matrix
+    * @param m , the passed matrix
+    * @return the result matrix
+	*/
+	public Matrix addMatrixEqual(Matrix m) {
+		for (int i = 0; i < data.size(); i++)
+			data.set(i, data.elementAt(i) + m.data.elementAt(i));
+		return this;
+	}
+
+   /**
+    * multiply double value by matrix
+    * @param f , the value to be multiplied 
+    * @return the result matrix
+	*/
+	public Matrix multiDouble(double f) {
+		Matrix ans = new Matrix(vert , horz);
+		for(int i = 0; i < data.size(); i++)
+			ans.data.set(i, data.get(i)*f);
+		return ans;
+	}
+	
+   /**
+    * multiply double value by this matrix
+    * @param f , the value to be multiplied 
+    * @return the result matrix
+	*/
+	public Matrix multiDoubleEqual(double f) {
+		for(int i = 0; i < data.size(); i++)
+			data.set(i, data.get(i)*f);
+		return this;
+	}
+
+	
+   /**
+    * multiply matrix value by another matrix
+    * @param m , the matrix to be multiplied 
+    * @return the result matrix
+	*/
+	public Matrix pointMultiMatrix(Matrix m) {
+		Matrix ans = new Matrix(vert , horz);
+		for (int i = 0; i < data.size(); i++)
+			ans.data.set(i, data.elementAt(i) * m.data.elementAt(i));
+		return ans;
+	}
+
+   /**
+    * multiply matrix value by this matrix
+    * @param m , the matrix to be multiplied 
+    * @return the result matrix
+	*/
+	public Matrix pointMultiMatrixEqual(Matrix m) {
+		for (int i = 0; i < data.size(); i++)
+			data.set(i, data.elementAt(i) * m.data.elementAt(i));
+		return this;
+	}
+
+   /**
+    * sum all pixels on the image
+    * @return the summation of the pixels
+	*/
+	public double Sum() {
+		double sum =  0.0;
+		for (double x : data)
+			sum += x;
+		return sum;
+	}
+	
+   /**
+    * returns an element on index i,j
+    * @return an element on index i,j
+	*/
+	public double getElem(int i,int j){
+		return data.get(i*horz+j);
+	}
+	public void setElem(int i,int j,double d){
+		data.set(i*horz+j, d);
+	}
+
+   /**
+    * load an image using its name
+    * @param ImageName , the name of the image
+    * @throws IOException if the image not found
+	*/
+	public void Load(String ImageName) throws IOException {
+		File file = new File(ImageName);
+		int pixel;
+		BufferedImage image = null;
+		try {
+			image = ImageIO.read(file);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		for (int i = 0; i < vert; i++) {
+			for (int j = 0; j < horz; j++) {
+				pixel = image.getRGB(j, i);
+				pixel = (pixel >> 16) & 0xff;
+				data.set(i*horz + j, (double) pixel);
+			}
+		}
+	}
+
+   /**
+    * save an image using into a specific path
+    * @param outputFilePath , the path to save image 
+    * @throws IOException if the image not found
+	*/
+	public  void Save(String outputFilePath) {
+		
+        int imageHeight = this.vert;
+		int imageWidth = this.horz;
+		BufferedImage image = new BufferedImage(imageWidth, imageHeight,
+				BufferedImage.TYPE_INT_RGB);
+		for (int i = 0; i < vert; i++) {
+			for (int j = 0; j < horz; j++) {
+				int pixel = (int) (data.get(i*horz + j) + 0);
+				int RGB = ((pixel << 16) & 0x00FF0000)
+						| ((pixel << 8) & 0x0000FF00) | (pixel & 0x000000FF);
+				image.setRGB(j, i, RGB);
+			}
+		}
+		try {
+			ImageIO.write(image, "bmp", new File(outputFilePath));
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+
+	}
+
+
+}
