@@ -1,0 +1,121 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+
+public class pcnn2d {
+
+	public int vert, horz;
+	public Rimage F = null;
+	public Rimage L = null;
+	public Rimage U = null;
+	public Rimage T = null;
+	public Rimage Y = null;
+	public Rimage K = null;
+	public double af =  10.0;
+	public double al =  1.0;
+	public double at = 5.0;
+	public double beta = 0.1;
+	public double vf = 0.5;
+	public double vl = 0.5;
+	public double vt = 20.0;
+
+	public pcnn2d(int V, int H) {
+		vert = V;
+		horz = H;
+		F = new Rimage(V, H);
+		L = new Rimage(V, H);
+		U = new Rimage(V, H);
+		T = new Rimage(V, H);
+//		T.Clear(0.3);
+		Y = new Rimage(V, H);
+		K = new Rimage(5, 5);
+		StdK();
+	}
+
+	public pcnn2d(pcnn2d P) {
+		vert = P.vert;
+		horz = P.horz;
+		F = new Rimage(P.F);
+		L = new Rimage(P.L);
+		U = new Rimage(P.U);
+		T = new Rimage(P.T);
+		Y = new Rimage(P.Y);
+		K = new Rimage(P.K);
+		af = P.af;
+		al = P.al;
+		at = P.at;
+		beta = P.beta;
+		vf = P.vf;
+		vl = P.vl;
+		vt = P.vt;
+
+	}
+	
+   /**	
+    * returns the vertical dimension of the kernel
+	*/
+	public int KernVert() {
+		return K.vert;
+	}
+	
+   /**	
+    * returns the horizontal dimension of the kernel
+	*/
+	public int KernHorz() {
+		return K.horz;
+	}
+
+   /**
+    * construct the kernal 
+	*/
+	void StdK() {
+		int i, j, kv, kh;
+		double val;
+		kv = K.vert;
+		kh = K.horz;
+		for (i = 0; i < kv; i++)
+			for (j = 0; j < kh; j++)
+				K.setElem(i, j, -1);
+		K.setElem(2, 2, 25);
+	}
+	
+   /**
+    * apply PCNN to the passed image
+    * @param A , the image that will apply PCNN on it
+    * @return the number of fired neurons
+    */
+	double Iterate(Rimage A) {
+		Rimage work = new Rimage(A.vert,A.horz);
+		work.equalMatrix(Y.Convolve(K));
+	    F.multiDoubleEqual(Math.exp(-1.0 / af));
+		F.addMatrixEqual(work.multiDouble(vf));
+		F.addMatrixEqual(A);
+		L.multiDoubleEqual(Math.exp(-1.0 / al));
+		L.addMatrixEqual(work.multiDouble(vl));
+		U.equalMatrix(F);
+		U.pointMultiMatrixEqual((L.multiDouble(beta).addDouble( 1.0)));
+		for (int i = 0; i < vert; i++)
+			for (int j = 0; j < horz; j++) {
+				if (U.getElem(i, j) > T.getElem(i, j)) 
+					Y.setElem(i, j, 1.0);
+				else 
+					Y.setElem(i, j, 0.0);
+			}
+		T.multiDoubleEqual(Math.exp(-1.0 / at));
+		T.addMatrixEqual(Y.multiDouble(vt));
+		return Y.Sum();
+	}
+	
+   /**
+    * set the values of PCNN parameters to zero
+	*/
+	void Clear() {
+		F.Clear(0);
+		L.Clear(0);
+		U.Clear(0);
+		T.Clear(0);
+		Y.Clear(0);
+	}
+}
