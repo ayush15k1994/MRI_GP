@@ -1,0 +1,134 @@
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
+
+
+public class Rimage extends Matrix {
+
+	public Rimage(){
+	
+	}
+	public Rimage(int vert, int horz) {
+		super(vert, horz);
+	}
+
+	public Rimage(Rimage A) {
+		super(A);
+	}
+	
+	public Rimage divDouble(double d) {
+		for (int i = 0; i < vert; i++)
+			for (int j = 0; j < horz; j++)
+				this.setElem(i, j, this.getElem(i, j) / d);
+		return this;
+	}
+
+   /**
+    * crop the image to specific dimension 
+    * @param newVert , new vertical value
+    * @param newHorz , new horizontal value
+    * @return new Rimage with new dimension
+    */
+	public  Rimage crop(int newVert , int newHorz){
+		int v = (vert-newVert)/2, h = (horz-newHorz)/2;
+	    Rimage res = new Rimage(newVert, newHorz);
+	    for(int i = 0 ; i < newVert ; i++){
+	    	for(int j = 0 ; j < newHorz ; j++){
+	    		res.setElem(i, j, getElem(v+i, h+j));
+	    	}
+	    }
+	    return res;
+	}
+	
+   /**
+    * decrease the image to specific ratio 
+    * @param vertRatio , vertical ratio
+    * @param horzRatio , horizontal ratio
+    * @return new Rimage with new dimension
+    */
+	public  Rimage subsample(int vertRatio, int horzRatio) {
+		int newVertDim = vert/vertRatio;
+		int newHorzDim = horz/horzRatio;
+		Rimage res = new Rimage(newVertDim, newHorzDim);
+		
+	    for(int i = 0 ; i < newVertDim ; i++){
+	    	for(int j = 0 ; j < newHorzDim ; j++){
+	    		res.setElem(i, j, getElem(vertRatio*i, horzRatio*j));
+	    	}
+	    }
+	    return res;
+	}
+	
+   /**
+    * decrease the image to specific average ratio 
+    * @param vertRatio , vertical ratio
+    * @param horzRatio , horizontal ratio
+    * @return new Rimage with new dimension
+    */
+	public  Rimage subsampleAvg(int vertRatio , int horzRatio) {
+		int newVertDim = vert/vertRatio;
+		int newHorzDim = horz/horzRatio;
+		Rimage res = new Rimage(newVertDim, newHorzDim);
+		
+	    for(int i = 0 ; i < newVertDim ; i++){
+	    	for(int j = 0 ; j < newHorzDim ; j++){
+	    		double avg = 0;
+	    		for(int k=0; k<vertRatio; k++)
+	    			for(int l=0; l<horzRatio; l++)
+	    				avg += getElem(vertRatio*i+k,horzRatio*j+l);
+	    		avg /= (double)(vertRatio*horzRatio);
+	    		res.setElem(i, j, avg);
+	    	}
+	    }
+	    return res;
+	}
+	
+   /**
+    * rotate the image UpsideDown
+	*/
+	public void UpsideDown() {
+		int d2 = vert / 2;
+		double temp;
+		for (int i = 0; i <= d2; i++)
+			for (int j = 0; j < horz; j++) {
+				temp = this.getElem(i, j);
+				this.setElem(i, j, this.getElem(vert - i - 1, j));
+				this.setElem(vert - i - 1, j, temp);
+			}
+	}
+
+   /**
+    * convolve the image with the kernal
+    * @return the resulted Rimage 
+	*/
+	public Rimage Convolve(final Rimage  Kern) {
+		int kvert = Kern.vert, khorz = Kern.horz;
+	     int dv = kvert / 2, dh = khorz / 2;
+
+	    Rimage  ans = new Rimage(vert, horz);
+	    for(int i = 0; i < vert; i++) 
+			for (int j = 0; j < horz; j++) {
+				double sum = 0.0;
+				final int ik0 = i - dv,
+					jl0 = j - dh,
+					kx0 = Math.max(0, dh - i),
+					kx1 = Math.min(khorz, horz + dh - i),
+					ky0 = Math.max(0, dv - j), 
+					ky1 = Math.min(kvert, vert + dv - j);
+				for (int kx = kx0; kx < kx1; kx++) {
+					final int ik = ik0 + kx;
+					for (int ky = ky0; ky < ky1; ky++) {
+						final int jl = jl0 + ky;
+						if(ik < vert && jl < horz)
+							sum += this.getElem(ik, jl) 
+								* Kern.getElem(kx, ky);
+					}
+				}
+				ans.setElem(i, j,sum);
+	    }
+	    return ans;
+	}
+}
