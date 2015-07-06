@@ -1,0 +1,262 @@
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Vector;
+
+//import ml.KmeansClustering;
+
+
+
+
+
+
+
+import Jama.Matrix;
+
+public class RegularRBF {
+
+	double mu[][];    //clustered images and their features
+	double xIn[][];   //trained data and their features
+	double muY[];     //classification of the clusters
+	double yIn[];     //classification of the trained data
+	double weights[]; //weights of the RBF model
+	int numPoints;    //number of trained data
+	
+   /**
+    * initialize RBF parameters
+    * @param trainingX , training data and their features
+    * @param trainingY , the classification of trained data
+	*/
+	public void initialize(double[][] trainingX, int[] trainingY){
+		xIn = trainingX;
+		numPoints = xIn.length;
+		yIn = new double[trainingY.length];
+		for(int i=0; i<trainingY.length; i++)
+			yIn[i] = trainingY[i];
+	}
+	
+   /**
+    * initialize the biased training data
+    * @param trainingX , biased training data
+    * @param trainingY , the classification of stored data 	
+	*/
+	public void initializeWithBiasedData(double[][] biasedTrainingX, int[] trainingY){
+		xIn = new double[biasedTrainingX.length][biasedTrainingX[0].length - 1]; 
+		for(int i=0; i<biasedTrainingX.length; i++)
+			for(int j=0; j<xIn[0].length; j++)
+				xIn[i][j] = biasedTrainingX[i][j+1];
+		numPoints = xIn.length;
+		yIn = new double[trainingY.length];
+		for(int i=0; i<trainingY.length; i++)
+			yIn[i] = trainingY[i];
+	}
+	
+   /**
+    * returns the error in the trained model
+    * @param jamma constant variable
+    * @return the error in the trained model
+	*/
+	public double getErrorIn(double jamma){
+		double error = 0;
+		
+		for(int i=0; i< xIn.length; i++)
+			if(classify(xIn[i],jamma)*yIn[i] < 0)
+				error++;
+		
+		error /= xIn.length;
+		return error;
+	}
+	
+   /**
+    * returns the error in tested trained data
+    * @param testPoints , the tested data and their features 
+    * @param testClasses , the classification of tested trained data
+    * @param jamma , constant variable
+    * @return the error in tested trained data
+	*/
+	public double getErrorOut(double[][] testPoints, int[] testClasses, double jamma){
+		double error = 0;
+		
+		for(int i=0; i< testPoints.length; i++)
+			if(classify(testPoints[i],jamma)*testClasses[i] < 0)
+				error++;
+		
+		error /= testPoints.length;
+		return error;
+	}
+	
+   /**
+    * classify tested image
+    * @param point , features of the tested image
+    * @param jamma , constant variable
+    * @return the class of the tested image
+	*/
+	public double classify(double[] point, double jamma){
+		double sum=0;
+		for(int i=0; i<mu.length; i++)
+			sum += weights[i] * Math.exp(-jamma*sqrDistance(point,mu[i]));
+		
+		return Math.signum(sum);
+	}
+	
+   /**
+    * inner learn function to get the RBF model
+    * @param phi matrix
+    * @param Y matrix
+    * @return inverse of phi times Y times phi transpose 	
+	*/
+	public Matrix learn(Matrix phi, Matrix Y){
+		return phi.transpose().times(phi).inverse().times(phi.transpose()).times(Y);
+	}
+
+   /**
+    * learn the RBF model
+    * @param jamma , constant variable
+    * @param K , number of clusters 
+	*/
+	public void learn(double jamma, int k) throws IOException{  
+		double y[][] = new double[1][yIn.length];
+		y[0] = yIn;
+		System.out.println("constructDataCenters");
+		constructDataCenters(k);
+		System.out.println("finish constructDataCenters");
+		Matrix phi = new Matrix(constructPhiMatrix(jamma));
+		Matrix ym = new Matrix(y).transpose();
+		weights = learn(phi,ym).transpose().getArray()[0];
+		System.out.println("finish learn");
+		writeWeight();
+		System.out.println("finish write");
+	}
+
+   /**
+    * construct the centers based on K 
+    * @param K , number of clusters 	 
+	*/
+	private void constructDataCenters(int k) {
+		KmeansClustering lloyd = new KmeansClustering(xIn,k,0,3000);
+		//mu = lloyd.cluster();
+		int c = 0;
+		//do{
+			do{
+				mu = lloyd.cluster();
+				c++;
+			}while(lloyd.hasEmptyClusters());
+				System.out.println("c = " + c);
+		//} while(!voteForMuClasses(lloyd));
+	}
+
+   /** 
+    * In case we need to get mu classes
+    */ 
+	private boolean voteForMuClasses(KmeansClustering lloyd) {
+		int[] pointsClusters = lloyd.getPointsClusters();
+		int votes[] = new int[mu.length];
+		
+		for(int i=0; i< pointsClusters.length ; i++)
+			votes[pointsClusters[i]] += yIn[i];
+		
+		int countPos = 0;
+		if(muY != null)
+		for(int i=0; i< muY.length; i++){
+			muY[i] = (votes[i]==0)? pointsClusters[lloyd.getNearestPointToCenter(i)]:Math.signum(votes[i]);
+			if(muY[i] > 0)	countPos++;
+		}
+		if(countPos > 0 && countPos < muY.length)
+			return true; 
+		System.out.println("Number of positive examples = " + countPos);
+		return false;
+	}
+
+   /**
+    * construct phi matrix
+    * @param jamma , constant variable
+    * @return phi matrix
+	*/
+	private double[][] constructPhiMatrix(double jamma){
+		double[][] phi = new double[xIn.length][mu.length];
+		for(int j=0; j<mu.length; j++)
+			for(int i=0; i< xIn.length; i++){
+				phi[i][j] = Math.exp(-jamma*sqrDistance(xIn[i],mu[j]));
+			}
+		return phi;
+	}
+	
+   /**
+    * returns distance between points and centers
+    * @param ds the points
+    * @param ds2 the centers 
+    * @return distance between points and centers
+	*/
+	private double sqrDistance(double[] ds, double[] ds2) {
+		double sqd = 0;
+		if(ds.length != ds2.length)
+			return -1;
+		for(int i=0 ; i< ds.length; i++)
+			sqd += Math.pow(ds[i] - ds2[i],2);
+		return sqd;
+	}
+
+   /**
+    * returns the weights of the RBF model	
+    * @return the weights of the RBF model	
+	*/
+	public double[] getModel() {
+		return weights;
+	}
+	
+   /**
+    * read weights of the RBF model
+    * @throws IOException if the file not found
+	*/
+	public  void readWeight() throws IOException {
+		   int w_sz = 0, mu_sz1 = 0, mu_sz2 = 0;
+		   Path filePath = Paths.get("C:\\Users\\DreamOnline\\Desktop\\MRI\\learn.txt");
+		   Scanner scanner = new Scanner(filePath);
+		    w_sz=scanner.nextInt();
+		    weights = new double[w_sz];
+		    for (int j = 0 ; j < w_sz; j++) { 
+				weights[j] = scanner.nextDouble();
+		    }
+		    mu_sz1 = scanner.nextInt();
+		    mu_sz2 = scanner.nextInt();
+		    mu = new double[mu_sz1][mu_sz2];
+		    for(int i=0;i<mu_sz1;i++){
+		    	for(int k=0;k<mu_sz2;k++){
+		    		mu[i][k] = scanner.nextDouble();
+		    	}
+		    }
+		    scanner.close();
+	}
+	
+   /**
+    * write weights of the RBF model
+    * @throws IOException if the file not found
+	*/
+	public  void writeWeight() throws IOException {
+		FileWriter f = new FileWriter("C:\\Users\\DreamOnline\\Desktop\\MRI\\learn.txt");
+		BufferedWriter myFile = new BufferedWriter(f);
+		    myFile.write(weights.length+" ");
+			for (int j = 0; j < weights.length; j++) {
+				myFile.write(weights[j]+" ");
+			}
+			myFile.newLine();
+			myFile.write(mu.length+" "+mu[0].length+ " ");
+			for(int i=0; i<mu.length; i++){
+				for(int j = 0; j < mu[i].length; j ++)
+					myFile.write(mu[i][j]+" ");
+				myFile.newLine();	
+			}
+			myFile.close() ;
+	}	
+
+	
+}
