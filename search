@@ -1,0 +1,188 @@
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
+public class search extends JFrame {
+	JFrame search = new JFrame();
+	JLabel label = new JLabel();
+	String username;
+
+	JMenuBar menubar = new JMenuBar();
+	JLabel userLabel = new JLabel("<html><font color = 'blue' >search by name");
+	final JTextField userText = new JTextField("");
+	JButton Search = new JButton("<html><font color= 'blue'>Search patient");
+
+	public search(final report r) {
+		super("psa");
+
+		createMenuBar();
+
+		search.setJMenuBar(menubar);
+		userText.getDocument().addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+				warn();
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				warn();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {
+				warn();
+			}
+
+			public void warn() {
+				username = userText.getText();
+
+			}
+		});
+
+		Search.setBounds(150, 200, 250, 25);
+		label.add(Search);
+		Search.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+
+				try {
+
+					while (username == "" || username == null) {
+						JOptionPane p = new JOptionPane();
+						Object x = p.showInputDialog("Name must be inserted",
+								"");
+						username = x.toString();
+					}
+
+					Class.forName("oracle.jdbc.driver.OracleDriver");
+					Connection con = DriverManager.getConnection(
+							"jdbc:oracle:thin:@localhost:1521:proj", "yasso",
+							"yasso");
+
+					PreparedStatement preparedStatement = con
+							.prepareStatement("select  * from patient where patient_name = ?  ");
+
+					preparedStatement.setString(1, username);
+
+					ResultSet rs = preparedStatement.executeQuery();
+					if (rs.next()) {
+						r.patient = rs.getString(2);
+						r.age = rs.getString(3);
+						r.dateOfAdmisson = rs.getString(4);
+						r.Status = rs.getString(5);
+						r.description = rs.getString(6);
+						r.doctor_id = rs.getString(7);
+						// System.out.println("patient name " + r.patient);
+
+						PreparedStatement preparedStatement2 = con
+								.prepareStatement("select  doctor_name from doctor where doctor_id = ?  ");
+
+						preparedStatement2.setString(1, r.doctor_id);
+
+						try {
+							ResultSet rs2 = preparedStatement2.executeQuery();
+							if (rs.next())
+								r.doctor_name = rs2.getString(1);
+							else
+								System.out.println("not found!");
+
+						} catch (SQLException x) {
+
+						}
+
+					}
+					close();
+
+				} catch (ClassNotFoundException | SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+				close();
+				result x = new result(r);
+
+			}
+
+		});
+		label.setIcon(new ImageIcon("C:/Users/DreamOnline/Desktop/6.png"));
+		userLabel.setBounds(100, 150, 200, 25);
+		label.add(userLabel);
+		userText.setBounds(200, 150, 160, 25);
+		label.add(userText);
+		search.setTitle("psa ");
+		search.add(label);
+		search.setSize(600, 400);
+		search.show();
+		search.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				System.exit(0);
+			}
+		});
+
+	}
+
+	private void createMenuBar() {
+
+		ImageIcon iconAbout = new ImageIcon("open.png");
+		ImageIcon iconExit = new ImageIcon("exit.png");
+
+		JMenu fileMenu = new JMenu("File");
+		JMenu helpMenu = new JMenu("Help");
+
+		JMenuItem exitMi = new JMenuItem("Exit", iconExit);
+		JMenuItem aboutMi = new JMenuItem("About", iconAbout);
+		exitMi.setToolTipText("Exit application");
+
+		exitMi.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				System.exit(0);
+			}
+		});
+
+		aboutMi.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+
+				JTextField textarea = new JTextField(10);
+				JOptionPane.showMessageDialog(null,
+						"welcome in our prostate cancer detection", "PCD",
+						JOptionPane.PLAIN_MESSAGE);
+
+			}
+		});
+
+		fileMenu.addSeparator();
+		fileMenu.add(exitMi);
+
+		helpMenu.add(aboutMi);
+		menubar.add(fileMenu);
+		menubar.add(helpMenu);
+		// setJMenuBar(menubar);
+
+	}
+
+	private void close() {
+		search.setVisible(false);
+	}
+
+}
