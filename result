@@ -1,0 +1,219 @@
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import com.itextpdf.text.Anchor;
+import com.itextpdf.text.Chapter;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.FontFactory;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.List;
+import com.itextpdf.text.ListItem;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Section;
+import com.itextpdf.text.pdf.CMYKColor;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
+
+public class result extends JFrame {
+	JFrame result = new JFrame();
+	JLabel label = new JLabel("");
+	JButton generate = new JButton(
+			"<html><font color= 'blue'>generate pdf result ");
+	JButton logout = new JButton("<html><font color= 'blue'>logout");
+	JMenuBar menubar = new JMenuBar();
+
+	public result(final report r) {
+		super("test results");
+		createMenuBar();
+		// JLabel msg2= new JLabel("heloo") ;
+		JLabel msg = new JLabel(
+				"<html><font color= 'blue' ,size = 3 > doctor name : "
+						+ r.doctor_name + "<br>" + "patient name " + r.patient
+						+ "<br>" + "status " + r.Status + "<br>" + "age "
+						+ r.age + "<br>" + "date of admission "
+						+ r.dateOfAdmisson + "<br>" + "description "
+						+ r.description + "<br>");
+		// msg.setBounds(200, 700, 1000, 1000);
+		result.setJMenuBar(menubar);
+		generate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					generateDocument(r);
+				} catch (MalformedURLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+			}
+
+		});
+
+		logout.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				close();
+				home h = new home();
+
+			}
+
+		});
+
+		label.setIcon(new ImageIcon("C:/Users/DreamOnline/Desktop/6.png"));
+		msg.setBounds(200, 80, 1000, 100);
+		// msg.setFont(new Font ("Serif", Font.PLAIN, 18));
+
+		label.add(msg);
+		generate.setBounds(100, 280, 200, 25);
+		logout.setBounds(310, 280, 100, 25);
+		label.add(generate);
+		label.add(logout);
+		result.add(label);
+
+		result.setTitle("psa ");
+		result.setSize(600, 400);
+		result.show();
+		result.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				System.exit(0);
+			}
+		});
+
+	}
+
+	private void generateDocument(report r) throws MalformedURLException {
+
+		Document document = new Document(PageSize.A4, 50, 50, 50, 50);
+		try {
+			PdfWriter writer = PdfWriter.getInstance(document,
+					new FileOutputStream(
+							"C:/Users/DreamOnline/Desktop/test_sresult.pdf"));
+			document.open();
+			Anchor anchorTarget = new Anchor("top");
+			anchorTarget.setName("BackToTop");
+			Paragraph paragraph1 = new Paragraph();
+			// paragraph1.setSpacingBefore(5);
+			paragraph1.add(anchorTarget);
+			document.add(paragraph1);
+			
+			Paragraph title1 = new Paragraph("This is the test results of "
+					+ r.patient, FontFactory.getFont(FontFactory.HELVETICA, 18,
+					Font.BOLDITALIC, new CMYKColor(0, 255, 255, 17)));
+			Chapter chapter1 = new Chapter(title1, 1);
+			chapter1.setNumberDepth(0);
+			Paragraph title11 = new Paragraph("Test result is " + r.Status,
+					FontFactory.getFont(FontFactory.HELVETICA, 16, Font.BOLD,
+							new CMYKColor(0, 255, 255, 17)));
+
+			Section section = chapter1.addSection(title11);
+
+			Paragraph name = new Paragraph("Patient Name " + r.patient);
+
+			Paragraph age = new Paragraph("Patient Age " + r.age);
+			Paragraph date = new Paragraph("Patient date of admisson "
+					+ r.dateOfAdmisson);
+			Paragraph doctor = new Paragraph("Doctor " + r.doctor_name);
+			Paragraph descB = new Paragraph("Description "
+					+ "is cancerous. Malignant tumors can invade and destroy "
+					+ "nearby tissue and spread to other parts of the body.");
+
+			Paragraph descM = new Paragraph("Benign is not cancerous. "
+					+ "Benign tumors may grow larger but do"
+					+ " not spread to other parts of the body.");
+
+			section.add(doctor);
+			section.add(name);
+			section.add(age);
+			section.add(date);
+			if (r.Status.equalsIgnoreCase("benign"))
+				section.add(descB);
+			else
+				section.add(descM);
+
+			Paragraph title2 = new Paragraph("Using Anchor",
+					FontFactory.getFont(FontFactory.HELVETICA, 16, Font.BOLD,
+							new CMYKColor(0, 255, 0, 0)));
+			section.add(title2);
+			title2.setSpacingBefore(5);
+			Anchor anchor2 = new Anchor("Back To Top");
+			anchor2.setReference("#BackToTop");
+			section.add(anchor2);
+			document.add(chapter1);
+			document.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (DocumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	private void createMenuBar() {
+
+		ImageIcon iconAbout = new ImageIcon("open.png");
+		ImageIcon iconExit = new ImageIcon("exit.png");
+
+		JMenu fileMenu = new JMenu("File");
+		JMenu helpMenu = new JMenu("Help");
+
+		JMenuItem exitMi = new JMenuItem("Exit", iconExit);
+		JMenuItem aboutMi = new JMenuItem("About", iconAbout);
+		exitMi.setToolTipText("Exit application");
+
+		exitMi.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				System.exit(0);
+			}
+		});
+
+		aboutMi.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+
+				JTextField textarea = new JTextField(10);
+				JOptionPane.showMessageDialog(null,
+						"welcome in our prostate cancer detection", "PCD",
+						JOptionPane.PLAIN_MESSAGE);
+
+			}
+		});
+
+		fileMenu.addSeparator();
+		fileMenu.add(exitMi);
+
+		helpMenu.add(aboutMi);
+		menubar.add(fileMenu);
+		menubar.add(helpMenu);
+		// setJMenuBar(menubar);
+
+	}
+
+	private void close() {
+		result.setVisible(false);
+	}
+
+}
