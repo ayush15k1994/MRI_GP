@@ -1,0 +1,120 @@
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
+
+public class afterLogin extends JFrame {
+	JFrame afterLogin = new JFrame () ; 
+	JLabel label = new JLabel();
+	JMenuBar menubar = new JMenuBar();
+
+	JButton add = new JButton("<html><font color= 'blue'>Add patient");
+	JButton Search = new JButton("<html><font color= 'blue'>Search patient");
+	 afterLogin(String userName , final report r){
+		super("psa") ; 
+		createMenuBar();
+		afterLogin.setJMenuBar(menubar);
+		JLabel msg = new JLabel("<html><font color= 'blue'> Welcome  " +userName );
+
+		msg.setFont(new Font ("Serif", Font.PLAIN, 18));
+		msg.setBounds(200, 120, 250, 25); 
+		label.add(msg) ;
+		add.setBounds(140, 170, 150, 25);
+		label.add(add) ;
+		Search.setBounds(310, 170, 150, 25);
+		label.add(Search) ;
+		afterLogin.add(label); 
+		
+		add.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				close() ; 
+				test t = new test("", r);
+
+			}
+
+		});
+		Search.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				close() ; 
+				search s= new search(r ) ;
+
+			}
+
+		});
+		label.setIcon(new ImageIcon("C:/Users/DreamOnline/Desktop/6.png"));
+
+		afterLogin.setTitle("psa ");
+		afterLogin.add(label);
+		afterLogin.setSize(600, 400);
+		afterLogin.show();
+		afterLogin.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				System.exit(0);
+			}
+		});
+		
+	}
+	private void createMenuBar() {
+
+		ImageIcon iconAbout = new ImageIcon("open.png");
+		ImageIcon iconExit = new ImageIcon("exit.png");
+
+		JMenu fileMenu = new JMenu("File");
+		JMenu helpMenu = new JMenu("Help");
+
+
+		JMenuItem exitMi = new JMenuItem("Exit", iconExit);
+		JMenuItem aboutMi = new JMenuItem("About", iconAbout);
+		exitMi.setToolTipText("Exit application");
+
+		exitMi.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				System.exit(0);
+			}
+		});
+
+		aboutMi.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+
+				JTextField textarea = new JTextField(10);
+				JOptionPane.showMessageDialog(null,
+						"welcome in our prostate cancer detection", "PCD",
+						JOptionPane.PLAIN_MESSAGE);
+
+			}
+		});
+
+		fileMenu.addSeparator();
+		fileMenu.add(exitMi);
+
+		helpMenu.add(aboutMi);
+		menubar.add(fileMenu);
+		menubar.add(helpMenu);
+	//	setJMenuBar(menubar);
+
+	}
+	private void close() {
+		afterLogin.setVisible(false);
+	}
+
+}
