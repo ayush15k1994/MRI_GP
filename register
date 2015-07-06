@@ -1,0 +1,242 @@
+import java.awt.BorderLayout;
+import java.awt.Label;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
+public class register extends JFrame {
+	String userName = "";
+	String password = "";
+	String confirmPassword = "";
+
+	JMenuBar menubar = new JMenuBar();
+	final JFrame frame = new JFrame();
+	JLabel label = new JLabel();
+	JLabel passwordLabel = new JLabel("<html><font color= 'blue'> Password");
+	JLabel userLabel = new JLabel("<html><font color= 'blue'> User");
+	JLabel confirmLabel = new JLabel(
+			"<html><font color= 'blue'> Confrim password");
+	final JTextField userText = new JTextField("");
+	final JPasswordField passwordText = new JPasswordField(20);
+	final JPasswordField confirmPasswordText = new JPasswordField(20);
+	JButton submit = new JButton("<html><font color= 'blue'>submit");
+
+	register() {
+		super("psa");
+
+		createMenuBar();
+		frame.setJMenuBar(menubar);
+		label.add(userLabel);
+		label.add(userText);
+		label.add(passwordLabel);
+		label.add(passwordText);
+		label.add(confirmLabel);
+		label.add(confirmPasswordText);
+		label.add(submit);
+		frame.add(label);
+
+		userText.getDocument().addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+				warn();
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				warn();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {
+				warn();
+			}
+
+			public void warn() {
+				userName = userText.getText();
+			}
+		});
+
+		passwordText.getDocument().addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+				warn();
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				warn();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {
+				warn();
+			}
+
+			public void warn() {
+				password = passwordText.getText();
+
+			}
+		});
+
+		confirmPasswordText.getDocument().addDocumentListener(
+				new DocumentListener() {
+
+					@Override
+					public void changedUpdate(DocumentEvent arg0) {
+						warn();
+					}
+
+					@Override
+					public void insertUpdate(DocumentEvent arg0) {
+						warn();
+					}
+
+					@Override
+					public void removeUpdate(DocumentEvent arg0) {
+						warn();
+					}
+
+					public void warn() {
+						confirmPassword = confirmPasswordText.getText();
+
+					}
+				});
+
+		submit.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				frame.setVisible(false);
+				if (password.equals(confirmPassword)) {
+					try {
+						Class.forName("oracle.jdbc.driver.OracleDriver");
+						Connection con = DriverManager.getConnection(
+								"jdbc:oracle:thin:@localhost:1521:proj",
+								"yasso", "yasso");
+						/*
+						 * INSERT INTO doctor VALUES (doc_seq.nextval , 'DR Amr
+						 * Badr', '12345' )
+						 */
+						PreparedStatement preparedStatement = con
+								.prepareStatement("insert into doctor values (doc_seq.nextval , ? ,? ) ");
+
+						preparedStatement.setString(1, userName);
+						preparedStatement.setString(2, password);
+
+						int result = preparedStatement.executeUpdate();
+						if (result == 1) {
+							System.out.println("user inserted");
+						}
+						close();
+						login l = new login();
+					} catch (ClassNotFoundException | SQLException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				} else {
+					System.out.println("password doesnt match!!");
+					close();
+					register r = new register();
+
+				}
+			}
+
+		});
+
+		label.setIcon(new ImageIcon("C:/Users/DreamOnline/Desktop/6.png"));
+		userLabel.setBounds(110, 80, 80, 25);
+		label.add(userLabel);
+		userText.setBounds(200, 80, 160, 25);
+		label.add(userText);
+		passwordLabel.setBounds(110, 110, 80, 25);
+		confirmLabel.setBounds(110, 140, 80, 25);
+		label.add(passwordLabel);
+		passwordText.setBounds(200, 110, 160, 25);
+		label.add(confirmLabel);
+		confirmPasswordText.setBounds(200, 140, 160, 25);
+		label.add(confirmPasswordText);
+		submit.setBounds(110, 150, 80, 25);
+		label.add(submit, BorderLayout.NORTH);
+		submit.setBounds(280, 190, 80, 25);
+		label.add(submit);
+		frame.add(label);
+		frame.setSize(600, 400);
+
+		frame.setTitle("psa ");
+		frame.show();
+
+		frame.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				System.exit(0);
+			}
+		});
+
+	}
+
+	private void createMenuBar() {
+
+		ImageIcon iconAbout = new ImageIcon("open.png");
+		ImageIcon iconExit = new ImageIcon("exit.png");
+
+		JMenu fileMenu = new JMenu("File");
+		JMenu helpMenu = new JMenu("Help");
+
+		JMenuItem exitMi = new JMenuItem("Exit", iconExit);
+		JMenuItem aboutMi = new JMenuItem("About", iconAbout);
+		exitMi.setToolTipText("Exit application");
+
+		exitMi.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				System.exit(0);
+			}
+		});
+
+		aboutMi.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+
+				JTextField textarea = new JTextField(10);
+				JOptionPane.showMessageDialog(null,
+						"welcome in our prostate cancer detection", "PCD",
+						JOptionPane.PLAIN_MESSAGE);
+
+			}
+		});
+
+		fileMenu.addSeparator();
+		fileMenu.add(exitMi);
+
+		helpMenu.add(aboutMi);
+		menubar.add(fileMenu);
+		menubar.add(helpMenu);
+		// setJMenuBar(menubar);
+
+	}
+
+	private void close() {
+		frame.setVisible(false);
+	}
+
+}
