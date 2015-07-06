@@ -1,0 +1,121 @@
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+
+public class home extends JFrame {
+
+	static JFrame frame = new JFrame();
+	JMenuBar menubar = new JMenuBar();
+	JLabel label = new JLabel();
+	JLabel welcomeMsg = new JLabel(
+			"<html><font color= 'blue'>PCD (prostate cancer detection ) is a tool for cancer detection<br/> using ultrasound"
+					+ " sonar images.it has been created to help<br/> doctors to diagnose patients immediately ,"
+					+ " following <br/>their condition and saving their history in a database.</font></html>");
+
+	JButton start = new JButton("<html><font color= 'blue'>Start using PCD");
+	
+	home() {
+
+		super("PCD");
+		createMenuBar();
+		createWindow();
+
+	}
+
+	private void createWindow() {
+
+		start.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				close();
+				login l = new login();
+			}
+
+		});
+
+		label.setIcon(new ImageIcon("C:/Users/DreamOnline/Desktop/6.png"));
+		welcomeMsg.setBounds(100, 50, 10000, 60);
+		welcomeMsg.setSize(720, 200);
+		//welcomeMsg.setBackground(Color.blue);
+		welcomeMsg.setFont(new Font ("Serif", Font.PLAIN, 18));
+		label.add(welcomeMsg);
+		start.setBounds(220, 290, 150, 25);
+		label.add(start);
+
+		this.add(label);
+		this.setSize(600, 400);
+		this.setTitle("pcd ");
+		this.show();
+		this.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				System.exit(0);
+			}
+		});
+
+	}
+
+	private void createMenuBar() {
+
+		ImageIcon iconAbout = new ImageIcon("open.png");
+		ImageIcon iconExit = new ImageIcon("exit.png");
+
+		JMenu fileMenu = new JMenu("File");
+		JMenu helpMenu = new JMenu("Help");
+
+		JMenuItem exitMi = new JMenuItem("Exit", iconExit);
+		JMenuItem aboutMi = new JMenuItem("About", iconAbout);
+		exitMi.setToolTipText("Exit application");
+
+		exitMi.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				System.exit(0);
+			}
+		});
+
+		aboutMi.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+
+				JTextField textarea = new JTextField(10);
+				JOptionPane.showMessageDialog(null,
+						"<html>"
+						+ "PCD (prostate cancer detection ) is a tool for cancer detection<br/> "
+						+ "using ultrasound sonar images.it has been created to help doctors <br/>"
+						+ "to diagnose patients immediately ,following their condition and saving <br/>"
+						+ "their statisitcs in a database.", "PCD", JOptionPane.PLAIN_MESSAGE);
+
+			}
+		});
+
+		fileMenu.addSeparator();
+		fileMenu.add(exitMi);
+
+		helpMenu.add(aboutMi);
+		menubar.add(fileMenu);
+		menubar.add(helpMenu);
+		setJMenuBar(menubar);
+	}
+
+	private void close() {
+		this.setVisible(false);
+	}
+
+}
