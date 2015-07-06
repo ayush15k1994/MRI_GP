@@ -1,0 +1,192 @@
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
+
+public class confirm extends JFrame {
+
+	JMenuBar menubar = new JMenuBar();
+	String newPath = "";
+	JFrame confirm = new JFrame();
+	JFrame frame = new JFrame();
+	JButton browse = new JButton("browse ");
+	JButton cnfrm = new JButton("confirm ");
+	JButton tst = new JButton("test ");
+
+	JLabel label = new JLabel();
+	JLabel msg = new JLabel("<html><font color= 'blue'>confirm this image or browse another  ");
+	
+	ImageIcon icon = null;
+	JLabel image = new JLabel("hello");
+
+	 confirm(String path ,final report r ) {
+		super ("psa");
+		r.path =path ; 
+
+		createMenuBar();
+		confirm.setJMenuBar(menubar);
+		label.setIcon(new ImageIcon("C:/Users/DreamOnline/Desktop/6.png"));
+		
+		newPath = path;
+		icon = new ImageIcon(path);
+		image = new JLabel(icon);
+		msg.setBounds(50, 140, 250, 40);
+		label.add(msg);
+		
+		image.setBounds(270, 140, 270, 500);
+		label.add(image);
+		System.out.println(path);
+
+		browse.setBounds(270, 200, 200, 25);
+		label.add(browse);
+		msg.setFont(new Font ("Serif", Font.PLAIN, 18));
+		
+		browse.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String filename = File.separator + "tmp";
+				JFileChooser fc = new JFileChooser(new File(filename));
+				File selFile = fc.getSelectedFile();
+				fc.showSaveDialog(frame);
+				selFile = fc.getSelectedFile();
+			//	System.out.println(selFile);
+
+				icon = new ImageIcon(selFile.getPath());
+				image = new JLabel(icon);
+				msg.setBounds(50, 140, 250, 40);
+				label.add(msg);
+				image.setBounds(270, 140, 200, 100);
+				label.add(image);
+				newPath = selFile.getPath();
+				System.out.println(newPath);
+				confirm c =new confirm (newPath ,r); 
+
+			}
+
+		});
+
+		tst.setBounds(50, 200, 200, 25);
+		label.add(tst);
+		tst.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.out.println(newPath);
+				r.path =newPath ; 
+//				try {
+//					BufferedImage image =  ImageIO.read(new File(newPath));
+//					BufferedImage resizeImageJpg = resizeImage(image, 0  );
+//					
+//					
+//				} catch (IOException e2) {
+//					
+//					e2.printStackTrace();
+//				} ;
+				
+				
+				close() ; 
+				// path hna hya ell r.path 
+				Runny running = new Runny (); 
+				int result = 0 ; 
+				try {
+					result = running.conctrol( newPath) ;
+					
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				} 
+				
+				
+				
+				if (result == -1 ) 
+					r.Status = "Benign" ; 
+				else if ( result ==1 )
+					r.Status = "Malignant" ; 
+				else  
+					r.Status = "Undetrmined" ;				
+				
+				result x = new result(r);
+				
+
+			}
+
+			private BufferedImage resizeImage(BufferedImage image, int i) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+		});
+
+		confirm.setTitle("psa ");
+		confirm.add(label);
+		confirm.setSize(600, 400);
+		confirm.show();
+		confirm.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				System.exit(0);
+			}
+		});
+
+	}
+	private void createMenuBar() {
+
+		ImageIcon iconAbout = new ImageIcon("open.png");
+		ImageIcon iconExit = new ImageIcon("exit.png");
+
+		JMenu fileMenu = new JMenu("File");
+		JMenu helpMenu = new JMenu("Help");
+
+
+		JMenuItem exitMi = new JMenuItem("Exit", iconExit);
+		JMenuItem aboutMi = new JMenuItem("About", iconAbout);
+		exitMi.setToolTipText("Exit application");
+
+		exitMi.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				System.exit(0);
+			}
+		});
+
+		aboutMi.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+
+				JTextField textarea = new JTextField(10);
+				JOptionPane.showMessageDialog(null,
+						"welcome in our prostate cancer detection", "PCD",
+						JOptionPane.PLAIN_MESSAGE);
+
+			}
+		});
+
+		fileMenu.addSeparator();
+		fileMenu.add(exitMi);
+
+		helpMenu.add(aboutMi);
+		menubar.add(fileMenu);
+		menubar.add(helpMenu);
+
+	}
+	private void close() {
+		confirm.setVisible(false);
+	}
+	
+
+}
